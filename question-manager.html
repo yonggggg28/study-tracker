@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>題庫管理｜學習系統</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+
+            /* 深色科技背景 */
+            background:
+                radial-gradient(circle at top left, #17335c 0%, transparent 35%),
+                linear-gradient(135deg, #08111f 0%, #0d1b2d 50%, #101827 100%);
+
+            background-attachment: fixed;
+            color: #eaf2ff;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #263b5e;
+            color: white;
+            padding: 20px 24px;
+        }
+
+        header h1 {
+            margin: 0 0 5px;
+        }
+
+        header p {
+            margin: 0;
+            opacity: .8;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(18, 32, 52, 0.92);
+            border: 1px solid rgba(120, 170, 230, 0.18);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .summary-box {
+            background: rgba(39, 67, 101, 0.55);
+            border: 1px solid rgba(108, 165, 230, 0.18);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .summary-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #365372;
+            border-radius: 8px;
+            font-size: 15px;
+
+            background: #0d1b2d;
+            color: #ffffff;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #65a9ff;
+            box-shadow: 0 0 0 3px rgba(101, 169, 255, 0.12);
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .primary {
+            background: #315b96;
+            color: white;
+        }
+
+        .secondary {
+            background: #e8edf5;
+            color: #263238;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #664d03;
+        }
+
+        .question {
+            background: rgba(10, 23, 40, 0.75);
+            border: 1px solid #294361;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .question-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .question-id {
+            color: #65758b;
+            font-size: 13px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #1c3654;
+            color: #cfe5ff;
+            border: 1px solid #31577c;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin: 5px 4px 5px 0;
+            font-size: 13px;
+        }
+
+        .disabled {
+            opacity: .5;
+        }
+
+        #editorArea {
+            display: none;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .full {
+            grid-column: 1 / -1;
+        }
+
+        .editor-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        @media(max-width:650px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .question-top {
+                display: block;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>📚 題庫管理</h1>
+        <p>老師端｜題目搜尋、分類與編輯</p>
+    </header>
+
+    <main>
+
+        <div class="card">
+
+            <h2>題庫概況</h2>
+
+            <div class="summary">
+
+                <div class="summary-box">
+                    題目總數
+                    <div class="summary-number" id="totalQuestions">
+                        0
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    啟用題目
+                    <div class="summary-number" id="activeQuestions">
+                        0
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    子觀念數
+                    <div class="summary-number" id="conceptCount">
+                        0
+                    </div>
+                </div>
+
+                <div class="summary-box">
+                    題庫不足
+                    <div class="summary-number" id="shortageCount">
+                        0
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card">
+            <h2>📥 批次匯入題庫</h2>
+
+            <p>
+                可使用 Excel 編輯題庫後另存為 CSV（UTF-8），
+                系統會先檢查資料，不會直接寫入。
+            </p>
+
+            <input type="file" id="csvFile" accept=".csv" onchange="readQuestionCSV(event)" />
+
+            <div id="importSummary" style="margin-top: 15px;"></div>
+
+            <div id="importPreview" style="
+      margin-top: 15px;
+      max-height: 400px;
+      overflow: auto;
+    "></div>
+
+            <button id="confirmImportButton" class="primary" onclick="confirmQuestionImport()"
+                style="display: none; margin-top: 15px;">
+                ✅ 確認匯入
+            </button>
+        </div>
+        <div class="card">
+
+            <h2>🔎 搜尋與篩選</h2>
+
+            <div class="filters">
+
+                <div>
+                    <label>搜尋</label>
+
+                    <input id="searchInput" placeholder="題目、題目ID...">
+                </div>
+
+                <div>
+                    <label>冊別</label>
+
+                    <select id="bookFilter">
+                        <option value="">
+                            全部冊別
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>大單元</label>
+
+                    <select id="unitFilter">
+                        <option value="">
+                            全部單元
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>子觀念</label>
+
+                    <select id="conceptFilter">
+                        <option value="">
+                            全部觀念
+                        </option>
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:15px;
+">
+
+                <h2 style="margin:0;">
+                    📋 題目列表
+                </h2>
+
+                <button class="primary" onclick="createQuestion()">
+                    ＋ 新增題目
+                </button>
+
+            </div>
+
+            <div id="questionList"></div>
+
+        </div>
+
+
+        <div class="card" id="editorArea">
+
+            <h2>✏️ 編輯題目</h2>
+
+            <div class="form-grid">
+
+                <div class="full">
+
+                    <label>題目 ID</label>
+
+                    <input id="editId" disabled>
+
+                </div>
+
+
+                <div>
+                    <label>冊別</label>
+                    <select id="editBook"></select>
+                </div>
+
+
+                <div>
+                    <label>大單元</label>
+                    <select id="editUnit"></select>
+                </div>
+
+
+                <div>
+                    <label>子觀念</label>
+                    <select id="editConcept"></select>
+                </div>
+
+
+                <div>
+                    <label>題型</label>
+
+                    <select id="editType">
+
+                        <option value="concept">
+                            觀念
+                        </option>
+
+                        <option value="calculation">
+                            計算
+                        </option>
+
+                        <option value="application">
+                            應用
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+                    <label>難度</label>
+
+                    <select id="editDifficulty">
+
+                        <option value="1">
+                            ★
+                        </option>
+
+                        <option value="2">
+                            ★★
+                        </option>
+
+                        <option value="3">
+                            ★★★
+                        </option>
+
+                        <option value="4">
+                            ★★★★
+                        </option>
+
+                        <option value="5">
+                            ★★★★★
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="full">
+
+                    <label>題目</label>
+
+                    <textarea id="editQuestion"></textarea>
+
+                </div>
+
+
+                <div>
+                    <label>A</label>
+                    <input id="editA">
+                </div>
+
+                <div>
+                    <label>B</label>
+                    <input id="editB">
+                </div>
+
+                <div>
+                    <label>C</label>
+                    <input id="editC">
+                </div>
+
+                <div>
+                    <label>D</label>
+                    <input id="editD">
+                </div>
+
+
+                <div>
+
+                    <label>正確答案</label>
+
+                    <select id="editAnswer">
+
+                        <option value="0">A</option>
+                        <option value="1">B</option>
+                        <option value="2">C</option>
+                        <option value="3">D</option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label>計算過程</label>
+
+                    <select id="editRequireWork">
+
+                        <option value="false">
+                            不需要
+                        </option>
+
+                        <option value="true">
+                            需要
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="full">
+
+                    <label>解析</label>
+
+                    <textarea id="editExplanation"></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="editor-buttons">
+
+                <button class="primary" onclick="saveQuestion()">
+                    💾 儲存修改
+                </button>
+                <button class="secondary" onclick="previewQuestion()">
+                    👁 學生畫面預覽
+                </button>
+
+                <button class="secondary" onclick="duplicateQuestion()">
+                    📄 複製成新題
+                </button>
+
+                <button class="warning" onclick="toggleQuestion()" id="toggleButton">
+                    ⏸ 停用題目
+                </button>
+
+                <button class="secondary" onclick="closeEditor()">
+                    關閉
+                </button>
+
+            </div>
+
+            <p style="color:#777;font-size:13px;">
+                ※ 現階段修改儲存在此瀏覽器，
+                不會改動 questions.js。
+                Firebase 完成後會改為雲端儲存。
+            </p>
+
+        </div>
+        <!-- ==========================================
+     學生題目預覽
+========================================== -->
+
+        <div id="previewModal" style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.75);
+        z-index:9999;
+        padding:20px;
+        overflow:auto;
+    ">
+
+            <div style="
+            max-width:600px;
+            margin:40px auto;
+            background:#ffffff;
+            color:#263238;
+            border-radius:18px;
+            padding:24px;
+            box-shadow:0 20px 60px rgba(0,0,0,.4);
+        ">
+
+                <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+            ">
+
+                    <div>
+                        <strong>
+                            👁 學生畫面預覽
+                        </strong>
+                    </div>
+
+                    <button onclick="closePreview()" style="
+                    background:#eeeeee;
+                    font-size:18px;
+                ">
+                        ✕
+                    </button>
+
+                </div>
+
+                <hr>
+
+                <div id="previewTag" style="
+                color:#607d8b;
+                font-size:14px;
+                margin-bottom:15px;
+            "></div>
+
+                <h2 id="previewQuestion" style="
+                line-height:1.6;
+            "></h2>
+
+                <div id="previewWork"></div>
+
+                <div id="previewOptions" style="
+                margin-top:20px;
+            "></div>
+
+                <div style="
+                margin-top:25px;
+                padding:15px;
+                background:#f4f7fb;
+                border-radius:10px;
+            ">
+
+                    <strong>
+                        🔐 老師檢查區
+                    </strong>
+
+                    <p id="previewAnswer"></p>
+
+                    <p id="previewExplanation"></p>
+
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+
+    <script src="curriculum.js"></script>
+    <script src="questions.js"></script>
+    <script src="question-manager.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>老師後台｜國三複習計畫</title>
+
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+            background: #f5f6f8;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            margin: 15px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .summary-box {
+            background: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 12px;
+        }
+
+        .big-number {
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        .green {
+            background: #e8f5e9;
+        }
+
+        .yellow {
+            background: #fff8e1;
+        }
+
+        .red {
+            background: #ffebee;
+        }
+
+        .warning {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        button {
+            padding: 9px 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+
+        /* 學生 / 時間篩選 */
+
+        .filter-row {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group select {
+            padding: 9px 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 650px) {
+
+            .summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+            }
+
+            .filter-group {
+                justify-content: space-between;
+            }
+
+            .filter-group select {
+                min-width: 160px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📊 老師學習後台</h1>
+
+    <p>
+        國三複習學習狀況
+    </p>
+    <!-- =========================
+     學生 / 查看範圍
+========================= -->
+
+    <div class="card">
+
+        <div class="filter-row">
+
+            <!-- 學生選擇 -->
+            <div class="filter-group">
+
+                <label for="studentFilter">
+                    <strong>👤 查看學生：</strong>
+                </label>
+
+                <select id="studentFilter">
+                    <option value="">
+                        載入學生中...
+                    </option>
+                </select>
+
+            </div>
+
+
+            <!-- 時間範圍 -->
+            <div class="filter-group">
+
+                <label for="timeFilter">
+                    <strong>📅 查看範圍：</strong>
+                </label>
+
+                <select id="timeFilter">
+
+                    <option value="latest">
+                        最近一次學習
+                    </option>
+
+                    <option value="today">
+                        今天
+                    </option>
+
+                    <option value="3days">
+                        最近 3 天
+                    </option>
+
+                    <option value="7days">
+                        最近 7 天
+                    </option>
+
+                    <option value="all">
+                        全部紀錄
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div id="filterDescription" style="margin-top:12px; color:#666;">
+            正在載入學生學習紀錄...
+        </div>
+
+    </div>
+    <!-- =========================
+         學習總覽
+    ========================= -->
+
+    <div class="summary">
+
+        <div class="summary-box">
+            <div id="totalQuestionsLabel">作答題數</div>
+            <div id="totalQuestions" class="big-number">
+                0
+            </div>
+            <div>題</div>
+        </div>
+
+        <div class="summary-box">
+            <div id="overallRateLabel">正確率</div>
+            <div id="overallRate" class="big-number">
+                0%
+            </div>
+        </div>
+
+        <div class="summary-box">
+            <div id="studyDaysLabel">學習日</div>
+            <div id="studyDays" class="big-number">
+                0
+            </div>
+            <div>天</div>
+        </div>
+
+        <div class="summary-box">
+            <div>不知道</div>
+            <div id="dontKnowCount" class="big-number">
+                0
+            </div>
+            <div>題</div>
+        </div>
+
+    </div>
+    <!-- =========================
+     學習摘要
+========================= -->
+
+    <div class="card">
+
+        <h2>📋 學習摘要</h2>
+
+        <div id="studySummaryArea">
+            目前沒有學習資料
+        </div>
+
+    </div>
+
+    <!-- =========================
+         能力地圖
+    ========================= -->
+
+    <div class="card">
+
+        <h2>🧪 理化能力地圖</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>單元</th>
+                    <th>答對</th>
+                    <th>正確率</th>
+                    <th>狀態</th>
+                </tr>
+            </thead>
+
+            <tbody id="topicTable">
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- =========================
+         優先處理
+    ========================= -->
+
+    <div class="card">
+
+        <h2>🚨 優先處理</h2>
+
+        <div id="priorityArea">
+            目前沒有資料
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         錯誤原因
+    ========================= -->
+
+    <div class="card">
+
+        <h2>🔍 錯誤原因分析</h2>
+
+        <div id="errorReasonArea">
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         最近錯題
+    ========================= -->
+
+    <div class="card">
+
+        <h2>❌ 最近錯題</h2>
+
+        <div id="wrongQuestions">
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <button onclick="location.href='student.html'">
+            ← 回學生頁
+        </button>
+
+    </div>
+
+
+    <script src="curriculum.js?v=3" charset="UTF-8"></script>
+    <script src="questions.js?v=3" charset="UTF-8"></script>
+
+
+    <!-- =========================
+     Firebase
+========================= -->
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAu4K1cgYCYdjx4m0dYgO0MpWkSWn-PjyA",
+            authDomain: "study-tracker-4ae80.firebaseapp.com",
+            projectId: "study-tracker-4ae80",
+            storageBucket: "study-tracker-4ae80.firebasestorage.app",
+            messagingSenderId: "329939564727",
+            appId: "1:329939564727:web:cbbed64c2553656206b532"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        console.log("🔥 教師端 Firebase 已初始化");
+
+        auth.onAuthStateChanged(async function (user) {
+
+            // ① 沒登入
+            if (!user) {
+
+                window.location.replace("login.html");
+
+                return;
+            }
+
+
+            try {
+
+                // ② 去 Firestore 查這個人的角色
+                const userDoc =
+                    await db
+                        .collection("users")
+                        .doc(user.uid)
+                        .get();
+
+
+                // ③ users 裡根本沒有這個人
+                if (!userDoc.exists) {
+
+                    alert("⛔ 此帳號尚未取得使用權限");
+
+                    await auth.signOut();
+
+                    window.location.replace("login.html");
+
+                    return;
+                }
+
+
+                const userData =
+                    userDoc.data();
+
+
+                // ④ 有帳號，但不是教師
+                if (userData.role !== "teacher") {
+
+                    alert("⛔ 此帳號沒有教師後台權限");
+
+                    window.location.replace("student.html");
+
+                    return;
+                }
+
+
+                // ⑤ 確認是教師
+                console.log(
+                    "✅ 教師權限驗證成功：",
+                    user.email
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "教師權限驗證失敗：",
+                    error
+                );
+
+                alert(
+                    "權限驗證失敗\n\n" +
+                    error.message
+                );
+
+                window.location.replace("login.html");
+            }
+
+        });
+    </script>
+
+
+    <!-- =========================
+     Supabase
+========================= -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const SUPABASE_URL =
+            "https://nkvdwznksiqswshizcsp.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_jtOUAQWn5pEso9p-VomSWw_nPwJ6Wql";
+
+        const supabaseClient =
+            supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+        console.log("📷 教師端 Supabase 已初始化");
+    </script>
+
+
+    <!-- =========================
+     教師後台
+========================= -->
+
+    <script src="teacher.js?v=8" charset="UTF-8"></script>
+
+</body>
+
+</html>

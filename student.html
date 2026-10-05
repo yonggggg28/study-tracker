@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>國三複習計畫</title>
+</head>
+
+<body>
+
+    <!-- =========================
+     首頁
+========================= -->
+
+    <div id="homePage">
+
+        <h1>📚 今日複習任務</h1>
+
+        <p>
+            每天完成一點，
+            系統會慢慢找出不熟的地方。
+        </p>
+
+        <hr>
+
+        <h2>📕 國文</h2>
+        <p>今日進度：0 / 10 題</p>
+        <button disabled>之後加入</button>
+
+        <h2>📐 數學</h2>
+        <p>今日進度：0 / 10 題</p>
+        <button disabled>之後加入</button>
+
+        <h2>🌏 社會</h2>
+        <p>今日進度：0 / 10 題</p>
+        <button disabled>之後加入</button>
+
+        <h2>🧪 理化</h2>
+
+        <p id="scienceDayDisplay"></p>
+
+        <p>
+            每日 2 個單元，每單元 5 題。<br>
+            系統會自動加入之前不熟的單元。
+        </p>
+
+        <button onclick="startScience()">
+            開始今日理化
+        </button>
+
+        <br><br>
+
+        <button onclick="testFirebase()">
+            🔥 測試 Firebase
+        </button>
+
+    </div>
+
+
+    <!-- =========================
+     答題頁
+========================= -->
+
+    <div id="quizPage" style="display:none;">
+
+        <p id="questionNumber"></p>
+
+        <p id="questionTag"></p>
+
+        <h2 id="questionText"></h2>
+
+        <div id="workArea"></div>
+
+        <div id="optionsArea"></div>
+
+        <div id="feedback"></div>
+
+    </div>
+
+
+    <!-- =========================
+     結果頁
+========================= -->
+
+    <div id="resultPage" style="display:none;">
+
+        <div id="resultContent"></div>
+
+    </div>
+
+
+    <!-- 課程架構 -->
+    <script src="curriculum.js"></script>
+
+    <!-- 題庫 -->
+    <script src="questions.js"></script>
+
+
+    <!-- 課程架構 -->
+    <script src="curriculum.js"></script>
+
+    <!-- 題庫 -->
+    <script src="questions.js"></script>
+
+
+    <!-- =========================
+     Firebase
+========================= -->
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAu4K1cgYCYdjx4m0dYgO0MpWkSWn-PjyA",
+            authDomain: "study-tracker-4ae80.firebaseapp.com",
+            projectId: "study-tracker-4ae80",
+            storageBucket: "study-tracker-4ae80.firebasestorage.app",
+            messagingSenderId: "329939564727",
+            appId: "1:329939564727:web:cbbed64c2553656206b532"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        console.log("🔥 Firebase 已初始化");
+
+        auth.onAuthStateChanged(async function (user) {
+
+            // 沒有登入
+            if (!user) {
+
+                window.location.replace("login.html");
+
+                return;
+            }
+
+
+            try {
+
+                // 查詢目前登入者角色
+                const userDoc =
+                    await db
+                        .collection("users")
+                        .doc(user.uid)
+                        .get();
+
+
+                // 不在允許名單
+                if (!userDoc.exists) {
+
+                    alert("⛔ 此帳號尚未取得使用權限");
+
+                    await auth.signOut();
+
+                    window.location.replace("login.html");
+
+                    return;
+                }
+
+
+                const userData =
+                    userDoc.data();
+
+
+                // 學生可以進
+                if (userData.role === "student") {
+
+                    console.log(
+                        "✅ 學生權限驗證成功：",
+                        user.email
+                    );
+
+                    return;
+                }
+
+
+                // 教師也允許進學生頁
+                // 方便你自己測試題目
+                if (userData.role === "teacher") {
+
+                    console.log(
+                        "✅ 教師進入學生測試頁：",
+                        user.email
+                    );
+
+                    return;
+                }
+
+
+                // 其他角色全部拒絕
+                alert("⛔ 此帳號沒有學生系統權限");
+
+                await auth.signOut();
+
+                window.location.replace("login.html");
+
+
+            } catch (error) {
+
+                console.error(
+                    "學生權限驗證失敗：",
+                    error
+                );
+
+                alert(
+                    "權限驗證失敗\n\n" +
+                    error.message
+                );
+
+                window.location.replace("login.html");
+            }
+
+        });
+    </script>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const SUPABASE_URL = "https://nkvdwznksiqswshizcsp.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_jtOUAQWn5pEso9p-VomSWw_nPwJ6Wql";
+
+        const supabaseClient = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+        console.log("📷 Supabase 已初始化");
+    </script>
+
+
+    <!-- 系統邏輯 -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>學習系統登入</title>
+
+    <style>
+        body {
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+            background: #f5f7fb;
+            margin: 0;
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-card {
+            width: 90%;
+            max-width: 380px;
+            background: white;
+            padding: 32px;
+            border-radius: 18px;
+
+            box-shadow:
+                0 8px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        .description {
+            text-align: center;
+            color: #666;
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            margin-top: 16px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+
+            border: 1px solid #ccc;
+            border-radius: 10px;
+
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 13px;
+
+            border: none;
+            border-radius: 10px;
+
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-top: 18px;
+            text-align: center;
+            min-height: 24px;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <div class="login-card">
+
+        <h1>📚 學習系統</h1>
+
+        <p class="description">
+            請使用已授權的帳號登入
+        </p>
+
+
+        <label for="email">
+            Email
+        </label>
+
+        <input id="email" type="email" autocomplete="email" placeholder="請輸入 Email">
+
+
+        <label for="password">
+            密碼
+        </label>
+
+        <input id="password" type="password" autocomplete="current-password" placeholder="請輸入密碼">
+
+
+        <button id="loginButton" onclick="login()">
+            登入
+        </button>
+
+
+        <div id="message"></div>
+
+    </div>
+
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-auth-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore-compat.js"></script>
+
+
+    <script>
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAu4K1cgYCYdjx4m0dYgO0MpWkSWn-PjyA",
+            authDomain: "study-tracker-4ae80.firebaseapp.com",
+            projectId: "study-tracker-4ae80",
+            storageBucket: "study-tracker-4ae80.firebasestorage.app",
+            messagingSenderId: "329939564727",
+            appId: "1:329939564727:web:cbbed64c2553656206b532"
+        };
+
+
+        firebase.initializeApp(
+            firebaseConfig
+        );
+
+
+        const auth =
+            firebase.auth();
+
+        const db =
+            firebase.firestore();
+
+
+
+        async function login() {
+
+            const email =
+                document
+                    .getElementById("email")
+                    .value
+                    .trim();
+
+
+            const password =
+                document
+                    .getElementById("password")
+                    .value;
+
+
+            const message =
+                document.getElementById(
+                    "message"
+                );
+
+
+            const button =
+                document.getElementById(
+                    "loginButton"
+                );
+
+
+            if (!email || !password) {
+
+                message.textContent =
+                    "請輸入 Email 和密碼";
+
+                return;
+            }
+
+
+            try {
+
+                button.disabled = true;
+
+                message.textContent =
+                    "登入中...";
+
+
+                const credential =
+                    await auth
+                        .signInWithEmailAndPassword(
+                            email,
+                            password
+                        );
+
+
+                message.textContent =
+                    "正在確認使用權限...";
+
+
+                // 取得目前登入者 UID
+                const uid =
+                    credential.user.uid;
+
+
+                // 到 Firestore users 查詢角色
+                const userDoc =
+                    await db
+                        .collection("users")
+                        .doc(uid)
+                        .get();
+
+
+                // 沒有在允許名單裡
+                if (!userDoc.exists) {
+
+                    await auth.signOut();
+
+                    message.textContent =
+                        "⛔ 此帳號尚未取得使用權限";
+
+                    button.disabled = false;
+
+                    return;
+                }
+
+
+                const userData =
+                    userDoc.data();
+
+
+                // 教師
+                if (userData.role === "teacher") {
+
+                    message.textContent =
+                        "✅ 教師登入成功";
+
+                    window.location.href =
+                        "teacher.html";
+
+                    return;
+                }
+
+
+                // 學生
+                if (userData.role === "student") {
+
+                    message.textContent =
+                        "✅ 學生登入成功";
+
+                    window.location.href =
+                        "student.html";
+
+                    return;
+                }
+
+
+                // role 不是 teacher / student
+                await auth.signOut();
+
+                message.textContent =
+                    "⛔ 此帳號沒有使用權限";
+
+                button.disabled = false;
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                message.textContent =
+                    "❌ 登入失敗：" + error.code;
+
+                alert(
+                    "Firebase 登入失敗\n\n" +
+                    "錯誤代碼：" + error.code +
+                    "\n\n錯誤內容：" + error.message
+                );
+
+                button.disabled = false;
+            }
+
+        }
+
+
+
+        // 在密碼欄按 Enter 也可以登入
+        document
+            .getElementById("password")
+            .addEventListener(
+                "keydown",
+                function (event) {
+
+                    if (event.key === "Enter") {
+                        login();
+                    }
+
+                }
+            );
+
+    </script>
+
+</body>
+
+</html>
