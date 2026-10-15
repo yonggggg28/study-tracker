@@ -129,6 +129,23 @@
                 min-width: 160px;
             }
         }
+
+        .teacher-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .question-btn {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+            font-weight: bold;
+        }
+
+        .question-btn:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 
@@ -326,10 +343,14 @@
     </div>
 
 
-    <div class="card">
+    <div class="card teacher-actions">
 
         <button onclick="location.href='student.html'">
-            ← 回學生頁
+            👩‍🎓 查看學生頁
+        </button>
+
+        <button class="question-btn" onclick="location.href='question-manager.html'">
+            ➕ 新增／管理題目
         </button>
 
     </div>
